@@ -17,6 +17,7 @@ import {
 } from "./task-store";
 
 type View = "day" | "week" | "month";
+const viewLabels: Record<View, string> = { day: "Dia", week: "Semana", month: "Mês" };
 
 const today = localDateString(new Date());
 const initialData = loadTasks();
@@ -47,21 +48,21 @@ watch(
 
 const selected = computed(() => parseLocalDate(selectedDate.value));
 const dayLabel = computed(() =>
-  selected.value.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }),
+  selected.value.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" }),
 );
 const periodLabel = computed(() => {
   if (view.value === "day") {
-    return selected.value.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    return selected.value.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
   }
 
   if (view.value === "week") {
     const start = parseLocalDate(startOfWeek(selectedDate.value));
     const end = addDays(localDateString(start), 6);
 
-    return `${start.toLocaleDateString(undefined, { month: "short", day: "numeric" })} – ${parseLocalDate(end).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
+    return `${start.toLocaleDateString("pt-BR", { day: "numeric", month: "short" })} – ${parseLocalDate(end).toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}`;
   }
 
-  return selected.value.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  return selected.value.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 });
 
 const weekDays = computed(() =>
@@ -170,7 +171,7 @@ function deleteTask(task: Task): void {
 }
 
 function formatDate(value: string, options: Intl.DateTimeFormatOptions): string {
-  return parseLocalDate(value).toLocaleDateString(undefined, options);
+  return parseLocalDate(value).toLocaleDateString("pt-BR", options);
 }
 
 function isSameMonth(value: string): boolean {
@@ -189,90 +190,84 @@ function isSameMonth(value: string): boolean {
       </a>
 
       <button class="new-task-button" type="button" @click="openComposer">
-        <span class="plus">＋</span> New task <kbd>⌘ N</kbd>
+        <span class="plus">＋</span> Nova tarefa <kbd>Ctrl/⌘ N</kbd>
       </button>
 
-      <nav class="side-nav" aria-label="Main navigation">
+      <nav class="side-nav" aria-label="Navegação principal">
         <button class="nav-item" :class="{ active: view === 'day' }" @click="setView('day')">
-          <span class="nav-icon">◷</span> Today <span class="nav-count">{{ remainingCount }}</span>
+          <span class="nav-icon">◷</span> Hoje <span class="nav-count">{{ remainingCount }}</span>
         </button>
         <button class="nav-item" :class="{ active: view === 'week' }" @click="setView('week')">
-          <span class="nav-icon">▦</span> Week
+          <span class="nav-icon">▦</span> Semana
         </button>
         <button class="nav-item" :class="{ active: view === 'month' }" @click="setView('month')">
-          <span class="nav-icon">▤</span> Month
+          <span class="nav-icon">▤</span> Mês
         </button>
       </nav>
 
       <div class="sidebar-bottom">
-        <div class="focus-card">
-          <span class="focus-icon">✳</span>
-          <strong>One day at a time.</strong>
-          <span>Small steps add up.</span>
-        </div>
         <div class="profile-row">
-          <span class="avatar">Y</span>
-          <span class="profile-label">Your space</span>
-          <span class="offline-dot" title="Saved on this device"></span>
+          <span class="avatar">D</span>
+          <span class="profile-label">Seu espaço</span>
+          <span class="offline-dot" title="Salvo neste dispositivo"></span>
         </div>
       </div>
     </aside>
 
     <main class="main-panel">
       <header class="topbar">
-        <div class="breadcrumbs"><span>My tasks</span><span class="crumb-divider">/</span><strong>{{ view }}</strong></div>
+        <div class="breadcrumbs"><span>Minhas tarefas</span><span class="crumb-divider">/</span><strong>{{ viewLabels[view] }}</strong></div>
         <div class="topbar-right">
-          <span class="saved-label"><span class="saved-dot"></span> Saved on this device</span>
-          <button class="icon-button" aria-label="Go to today" title="Go to today" @click="selectedDate = today">⌂</button>
+          <span class="saved-label"><span class="saved-dot"></span> Salvo neste dispositivo</span>
+          <button class="icon-button" aria-label="Ir para hoje" title="Ir para hoje" @click="selectedDate = today">⌂</button>
         </div>
       </header>
 
       <section class="content-area">
         <div class="page-heading">
           <div>
-            <div class="eyebrow">{{ view === 'day' ? 'YOUR DAY' : view === 'week' ? 'YOUR WEEK' : 'YOUR MONTH' }}</div>
+            <div class="eyebrow">{{ view === 'day' ? 'HOJE' : view === 'week' ? 'ESTA SEMANA' : 'ESTE MÊS' }}</div>
             <h1>{{ view === 'day' ? dayLabel : periodLabel }}</h1>
             <p v-if="view === 'day'" class="heading-subtitle">
-              {{ remainingCount === 0 ? 'A little space to breathe.' : `${remainingCount} ${remainingCount === 1 ? 'task' : 'tasks'} to focus on` }}
+              {{ remainingCount }} {{ remainingCount === 1 ? 'tarefa pendente' : 'tarefas pendentes' }}
             </p>
-            <p v-else class="heading-subtitle">Make room for what matters.</p>
           </div>
-          <button class="primary-button" @click="openComposer"><span>＋</span> Add task</button>
+          <button class="primary-button" @click="openComposer"><span>＋</span> Adicionar tarefa</button>
         </div>
 
         <div class="calendar-toolbar">
           <div class="period-navigation">
-            <button class="arrow-button" aria-label="Previous" @click="movePeriod(-1)">‹</button>
-            <button class="arrow-button" aria-label="Next" @click="movePeriod(1)">›</button>
+            <button class="arrow-button" aria-label="Período anterior" @click="movePeriod(-1)">‹</button>
+            <button class="arrow-button" aria-label="Próximo período" @click="movePeriod(1)">›</button>
             <span class="period-label">{{ periodLabel }}</span>
-            <button v-if="selectedDate !== today" class="today-button" @click="selectedDate = today">Today</button>
+            <button v-if="selectedDate !== today" class="today-button" @click="selectedDate = today">Hoje</button>
           </div>
-          <div class="view-switcher" role="tablist" aria-label="Calendar view">
-            <button v-for="item in (['day', 'week', 'month'] as const)" :key="item" :class="{ selected: view === item }" @click="setView(item)">{{ item }}</button>
+          <div class="view-switcher" role="tablist" aria-label="Visualização do calendário">
+            <button v-for="item in (['day', 'week', 'month'] as const)" :key="item" :class="{ selected: view === item }" @click="setView(item)">{{ viewLabels[item] }}</button>
           </div>
         </div>
 
         <section v-if="view === 'day'" class="day-view">
           <div v-if="carriedOccurrences.length" class="carry-section">
             <div class="section-title">
-              <div><span class="carry-indicator">↗</span><strong>Carried over</strong><span class="section-count">{{ carriedOccurrences.length }}</span></div>
-              <span class="muted-label">Still on your list</span>
+              <div><span class="carry-indicator">↗</span><strong>Pendentes de dias anteriores</strong><span class="section-count">{{ carriedOccurrences.length }}</span></div>
+              <span class="muted-label">Em aberto</span>
             </div>
             <TaskList :occurrences="carriedOccurrences" :selected-date="selectedDate" @toggle="toggleOccurrence" @delete="deleteTask" />
           </div>
 
           <div class="section-title today-section-title">
-            <div><span class="today-indicator"></span><strong>Due today</strong><span class="section-count">{{ dayOccurrences.length }}</span></div>
+            <div><span class="today-indicator"></span><strong>Tarefas do dia</strong><span class="section-count">{{ dayOccurrences.length }}</span></div>
             <span class="muted-label">{{ formatDate(selectedDate, { weekday: 'long' }) }}</span>
           </div>
           <TaskList v-if="dayOccurrences.length" :occurrences="dayOccurrences" :selected-date="selectedDate" @toggle="toggleOccurrence" @delete="deleteTask" />
           <div v-else-if="!carriedOccurrences.length" class="empty-state">
             <div class="empty-art"><span>✓</span></div>
-            <strong>Nothing on your list. Nice.</strong>
-            <p>Enjoy the breathing room, or add something you want to get done.</p>
-            <button class="secondary-button" @click="openComposer">＋ Add your first task</button>
+            <strong>Nenhuma tarefa para esta data.</strong>
+            <p>Adicione uma tarefa para incluí-la na lista.</p>
+            <button class="secondary-button" @click="openComposer">＋ Adicionar tarefa</button>
           </div>
-          <button v-else class="add-inline" @click="openComposer"><span>＋</span> Add a task for this day</button>
+          <button v-else class="add-inline" @click="openComposer"><span>＋</span> Adicionar tarefa para este dia</button>
         </section>
 
         <section v-else-if="view === 'week'" class="week-view">
@@ -287,14 +282,14 @@ function isSameMonth(value: string): boolean {
                 <span class="mini-check">{{ occurrence.completed ? '✓' : '' }}</span>
                 <span>{{ occurrence.task.title }}</span>
               </button>
-              <button class="week-add" aria-label="Add task" @click="selectedDate = date; openComposer">＋</button>
+              <button class="week-add" aria-label="Adicionar tarefa" @click="selectedDate = date; openComposer">＋</button>
             </div>
           </div>
         </section>
 
         <section v-else class="month-view">
           <div class="month-weekdays">
-            <span v-for="weekday in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']" :key="weekday">{{ weekday }}</span>
+            <span v-for="weekday in ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']" :key="weekday">{{ weekday }}</span>
           </div>
           <div class="month-grid">
             <button v-for="date in monthDays" :key="date" class="month-cell" :class="{ 'outside-month': !isSameMonth(date), 'is-selected': date === selectedDate, 'is-today': date === today }" @click="selectedDate = date; setView('day')">
@@ -302,29 +297,29 @@ function isSameMonth(value: string): boolean {
               <span v-for="occurrence in occurrencesForCalendarDate(date).slice(0, 3)" :key="occurrence.key" class="month-task" :class="{ done: occurrence.completed, carried: occurrence.date < date }">
                 <i></i>{{ occurrence.task.title }}
               </span>
-              <span v-if="occurrencesForCalendarDate(date).length > 3" class="more-tasks">+{{ occurrencesForCalendarDate(date).length - 3 }} more</span>
+              <span v-if="occurrencesForCalendarDate(date).length > 3" class="more-tasks">+{{ occurrencesForCalendarDate(date).length - 3 }} mais</span>
             </button>
           </div>
         </section>
 
-        <footer class="page-footer"><span>Keep it simple. Keep it moving.</span><span>Dayflow <i>·</i> Your plans stay on this device</span></footer>
+        <footer class="page-footer"><span>Dayflow <i>·</i> Seus dados ficam neste dispositivo</span></footer>
       </section>
     </main>
 
     <div v-if="isComposerOpen" class="modal-backdrop" @click.self="isComposerOpen = false" @keydown.esc="isComposerOpen = false">
       <form class="task-modal" @submit.prevent="createTask">
         <div class="modal-header">
-          <div><span class="modal-kicker">MAKE IT HAPPEN</span><h2>New task</h2></div>
-          <button type="button" class="close-button" aria-label="Close" @click="isComposerOpen = false">×</button>
+          <div><span class="modal-kicker">TAREFA</span><h2>Nova tarefa</h2></div>
+          <button type="button" class="close-button" aria-label="Fechar" @click="isComposerOpen = false">×</button>
         </div>
-        <label class="field-label" for="task-title">What needs doing?</label>
-        <input id="task-title" v-model="newTaskTitle" class="text-input" placeholder="e.g. Take a proper lunch break" maxlength="120" autofocus required />
+        <label class="field-label" for="task-title">O que precisa ser feito?</label>
+        <input id="task-title" v-model="newTaskTitle" class="text-input" placeholder="Ex.: pagar uma conta" maxlength="120" autofocus required />
         <div class="form-row">
-          <label class="form-field"><span class="field-label">When</span><input v-model="newTaskDate" class="text-input" type="date" required /></label>
-          <label class="form-field"><span class="field-label">Repeat</span><select v-model="newTaskRecurrence" class="text-input"><option value="none">Does not repeat</option><option value="daily">Every day</option><option value="weekly">Every week</option><option value="monthly">Every month</option></select></label>
+          <label class="form-field"><span class="field-label">Data</span><input v-model="newTaskDate" class="text-input" type="date" required /></label>
+          <label class="form-field"><span class="field-label">Repetição</span><select v-model="newTaskRecurrence" class="text-input"><option value="none">Não se repete</option><option value="daily">Todos os dias</option><option value="weekly">Toda semana</option><option value="monthly">Todo mês</option></select></label>
         </div>
-        <div class="modal-note"><span>↗</span> If unfinished, task carries forward automatically.</div>
-        <div class="modal-actions"><button type="button" class="cancel-button" @click="isComposerOpen = false">Cancel</button><button class="primary-button" type="submit">Create task <span>→</span></button></div>
+        <div class="modal-note"><span>↗</span> Tarefas não concluídas são transferidas automaticamente para o dia seguinte.</div>
+        <div class="modal-actions"><button type="button" class="cancel-button" @click="isComposerOpen = false">Cancelar</button><button class="primary-button" type="submit">Criar tarefa <span>→</span></button></div>
       </form>
     </div>
   </div>

@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import type { TaskOccurrence } from "../task-store";
 
+const recurrenceLabels: Record<TaskOccurrence["task"]["recurrence"], string> = {
+  none: "Não se repete",
+  daily: "Diariamente",
+  weekly: "Semanalmente",
+  monthly: "Mensalmente",
+};
+
 defineProps<{
   occurrences: TaskOccurrence[];
   selectedDate: string;
@@ -12,24 +19,24 @@ const emit = defineEmits<{
 }>();
 
 function carryLabel(date: string): string {
-  return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", { day: "numeric", month: "short" });
 }
 </script>
 
 <template>
   <div class="task-list">
     <div v-for="occurrence in occurrences" :key="occurrence.key" class="task-row" :class="{ completed: occurrence.completed }">
-      <button class="task-checkbox" :aria-label="occurrence.completed ? 'Mark incomplete' : 'Complete task'" @click="emit('toggle', occurrence)">
+      <button class="task-checkbox" :aria-label="occurrence.completed ? 'Marcar como pendente' : 'Concluir tarefa'" @click="emit('toggle', occurrence)">
         {{ occurrence.completed ? "✓" : "" }}
       </button>
       <div class="task-copy">
         <span class="task-title">{{ occurrence.task.title }}</span>
         <span v-if="occurrence.date < selectedDate || occurrence.task.recurrence !== 'none'" class="task-meta">
-          <template v-if="occurrence.date < selectedDate">From {{ carryLabel(occurrence.date) }}</template>
-          <template v-if="occurrence.task.recurrence !== 'none'">{{ occurrence.date < selectedDate ? ' · ' : '' }}↻ {{ occurrence.task.recurrence }}</template>
+          <template v-if="occurrence.date < selectedDate">Desde {{ carryLabel(occurrence.date) }}</template>
+          <template v-if="occurrence.task.recurrence !== 'none'">{{ occurrence.date < selectedDate ? ' · ' : '' }}↻ {{ recurrenceLabels[occurrence.task.recurrence] }}</template>
         </span>
       </div>
-      <button class="delete-task" title="Delete task" aria-label="Delete task" @click="emit('delete', occurrence.task)">×</button>
+      <button class="delete-task" title="Excluir tarefa" aria-label="Excluir tarefa" @click="emit('delete', occurrence.task)">×</button>
     </div>
   </div>
 </template>
